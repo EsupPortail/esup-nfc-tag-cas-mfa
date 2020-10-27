@@ -23,14 +23,12 @@ import org.apereo.cas.authentication.AuthenticationHandler;
 import org.apereo.cas.authentication.AuthenticationMetaDataPopulator;
 import org.apereo.cas.authentication.MultifactorAuthenticationFailureModeEvaluator;
 import org.apereo.cas.authentication.MultifactorAuthenticationProvider;
-import org.apereo.cas.authentication.MultifactorAuthenticationProviderBypass;
-import org.apereo.cas.authentication.MultifactorAuthenticationUtils;
+import org.apereo.cas.authentication.bypass.MultifactorAuthenticationProviderBypassEvaluator;
 import org.apereo.cas.authentication.handler.ByCredentialTypeAuthenticationHandlerResolver;
 import org.apereo.cas.authentication.metadata.AuthenticationContextAttributeMetaDataPopulator;
 import org.apereo.cas.authentication.principal.PrincipalFactory;
 import org.apereo.cas.authentication.principal.PrincipalFactoryUtils;
 import org.apereo.cas.configuration.CasConfigurationProperties;
-import org.apereo.cas.configuration.model.support.mfa.MultifactorAuthenticationProviderBypassProperties;
 import org.apereo.cas.services.ServicesManager;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +50,10 @@ public class EsupNfcMultifactorAuthenticationEventExecutionPlanConfiguration {
     private ObjectProvider<ServicesManager> servicesManager;
 
     @Autowired
+    @Qualifier("esupNfcMultifactorBypassEvaluator")
+    private ObjectProvider<MultifactorAuthenticationProviderBypassEvaluator> esupNfcMultifactorBypassEvaluator;
+
+    @Autowired
     @Qualifier("failureModeEvaluator")
     private ObjectProvider<MultifactorAuthenticationFailureModeEvaluator> failureModeEvaluator;
 
@@ -67,22 +69,12 @@ public class EsupNfcMultifactorAuthenticationEventExecutionPlanConfiguration {
             servicesManager.getObject(), esupNfcMultifactorPrincipalFactory(),
             centralAuthenticationService.getObject(), 0);
     }
-    
-    @Bean
-    @RefreshScope
-    public MultifactorAuthenticationProviderBypass esupNfcMultifactorBypassEvaluator() {
-        return MultifactorAuthenticationUtils.newMultifactorAuthenticationProviderBypass(new MultifactorAuthenticationProviderBypassProperties());
-    }
 
     @Bean
     @RefreshScope
     public MultifactorAuthenticationProvider esupNfcMultifactorAuthenticationProvider() {
     	EsupNfcMultifactorAuthenticationProvider p = new EsupNfcMultifactorAuthenticationProvider();
-    	p.setBypassEvaluator(esupNfcMultifactorBypassEvaluator());
-        p.setFailureModeEvaluator(failureModeEvaluator.getIfAvailable());
-        p.setFailureMode("CLOSED");
-        p.setOrder(0);
-        p.setId("mfa-esup-nfc");
+        p.setBypassEvaluator(esupNfcMultifactorBypassEvaluator.getObject());
         return p;
     }
 

@@ -17,9 +17,13 @@
  ******************************************************************************/
 package org.esupportail.cas.nfctag;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.apereo.cas.configuration.CasConfigurationProperties;
 import org.apereo.cas.web.flow.configurer.AbstractCasMultifactorWebflowConfigurer;
-import org.springframework.context.ApplicationContext;
+import org.apereo.cas.web.flow.configurer.CasMultifactorWebflowCustomizer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.webflow.definition.registry.FlowDefinitionRegistry;
 import org.springframework.webflow.engine.builder.support.FlowBuilderServices;
 
@@ -28,21 +32,20 @@ public class EsupNfcMultifactorWebflowConfigurer extends AbstractCasMultifactorW
 	
     public static final String MFA_EVENT_ID = "mfa-esup-nfc";
     
-    private final FlowDefinitionRegistry flowDefinitionRegistry;
-    
     public EsupNfcMultifactorWebflowConfigurer(final FlowBuilderServices flowBuilderServices,
             final FlowDefinitionRegistry loginFlowDefinitionRegistry,
             final FlowDefinitionRegistry flowDefinitionRegistry,
-            final ApplicationContext applicationContext,
-            final CasConfigurationProperties casProperties) {
+            final ConfigurableApplicationContext applicationContext,
+            final CasConfigurationProperties casProperties,
+            final List<CasMultifactorWebflowCustomizer> mfaFlowCustomizers) {
 		super(flowBuilderServices, loginFlowDefinitionRegistry,
-		applicationContext, casProperties);
-		this.flowDefinitionRegistry = flowDefinitionRegistry;
+		applicationContext, casProperties, Optional.of(flowDefinitionRegistry),
+		mfaFlowCustomizers);
 		}
 		
 		@Override
 		protected void doInitialize() {
-			registerMultifactorProviderAuthenticationWebflow(getLoginFlow(), MFA_EVENT_ID, this.flowDefinitionRegistry, MFA_EVENT_ID);
+			registerMultifactorProviderAuthenticationWebflow(getLoginFlow(), MFA_EVENT_ID, MFA_EVENT_ID);
 		}
 
 }

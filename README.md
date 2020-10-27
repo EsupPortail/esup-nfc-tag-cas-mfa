@@ -1,4 +1,4 @@
-Works on CAS V6.0.*
+Works on CAS V6.2.*
 
 ## Apereo CAS Config
 
@@ -10,7 +10,7 @@ cas.authn.mfa.globalProviderId=mfa-esup-nfc
 
 Or use another Multifactor Authentication Trigger :
 
-https://apereo.github.io/cas/6.0.x/mfa/Configuring-Multifactor-Authentication-Triggers.html
+https://apereo.github.io/cas/6.2.x/mfa/Configuring-Multifactor-Authentication-Triggers.html
 
 In cas.properties, add also translations (or/and customize esup-nfc-cas-mfa _messages) :
 cas.messageBundle.baseNames=classpath:custom_messages,classpath:messages,classpath:esupnfccas_messages

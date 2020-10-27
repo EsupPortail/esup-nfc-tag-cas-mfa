@@ -18,21 +18,20 @@
 package org.esupportail.cas.nfctag;
 
 import org.apereo.cas.configuration.CasConfigurationProperties;
-import org.apereo.cas.ticket.ExpirationPolicy;
+import org.apereo.cas.ticket.ExpirationPolicyBuilder;
 import org.apereo.cas.ticket.TransientSessionTicketFactory;
 import org.apereo.cas.ticket.UniqueTicketIdGenerator;
 import org.apereo.cas.ticket.registry.TicketRegistry;
-import org.apereo.cas.ticket.support.HardTimeoutExpirationPolicy;
 import org.apereo.cas.web.flow.CasWebflowConfigurer;
-import org.apereo.cas.web.flow.CasWebflowExecutionPlan;
 import org.apereo.cas.web.flow.CasWebflowExecutionPlanConfigurer;
+import org.apereo.cas.web.flow.util.MultifactorAuthenticationWebflowUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -43,7 +42,7 @@ import org.springframework.webflow.execution.Action;
 
 @Configuration("esupNfcCasConfiguration")
 @EnableConfigurationProperties(CasConfigurationProperties.class)
-public class EsupNfcCasConfiguration implements CasWebflowExecutionPlanConfigurer {
+public class EsupNfcCasConfiguration {
 	
     @Autowired
     private CasConfigurationProperties casProperties;
@@ -56,18 +55,18 @@ public class EsupNfcCasConfiguration implements CasWebflowExecutionPlanConfigure
     private ObjectProvider<TicketRegistry> ticketRegistry;
     
     @Autowired
-    private ApplicationContext applicationContext;
+    private ConfigurableApplicationContext applicationContext;
 
     @Autowired
     @Qualifier("loginFlowRegistry")
     private ObjectProvider<FlowDefinitionRegistry> loginFlowDefinitionRegistry;
 
     @Autowired
-    private FlowBuilderServices flowBuilderServices;
+    private ObjectProvider<FlowBuilderServices> flowBuilderServices;
     
     @Bean
     public FlowDefinitionRegistry esupNfcFlowRegistry() {
-        final FlowDefinitionRegistryBuilder builder = new FlowDefinitionRegistryBuilder(applicationContext, flowBuilderServices);
+        final FlowDefinitionRegistryBuilder builder = new FlowDefinitionRegistryBuilder(applicationContext, flowBuilderServices.getIfAvailable());
         builder.setBasePath("classpath*:/webflow");
         builder.addFlowLocationPattern("/mfa-esup-nfc/*-webflow.xml");
         return builder.build();
@@ -77,14 +76,17 @@ public class EsupNfcCasConfiguration implements CasWebflowExecutionPlanConfigure
     @Bean
     @DependsOn("defaultWebflowConfigurer")
     public CasWebflowConfigurer esupNfcWebflowConfigurer() {
-        return new EsupNfcMultifactorWebflowConfigurer(flowBuilderServices,
-                loginFlowDefinitionRegistry.getIfAvailable(), esupNfcFlowRegistry(),
-                applicationContext, casProperties);
+        return new EsupNfcMultifactorWebflowConfigurer(flowBuilderServices.getObject(),
+                loginFlowDefinitionRegistry.getObject(), esupNfcFlowRegistry(),
+                applicationContext, casProperties,
+                MultifactorAuthenticationWebflowUtils.getMultifactorAuthenticationWebflowCustomizers(applicationContext));
+
     }
     
-    @Override
-    public void configureWebflowExecutionPlan(final CasWebflowExecutionPlan plan) {
-        plan.registerWebflowConfigurer(esupNfcWebflowConfigurer());
+    @Bean
+    @ConditionalOnMissingBean(name = "esupNfcCasWebflowExecutionPlanConfigurer")
+    public CasWebflowExecutionPlanConfigurer esupNfcCasWebflowExecutionPlanConfigurer() {
+        return plan -> plan.registerWebflowConfigurer(esupNfcWebflowConfigurer());
     }
     
     
@@ -95,6 +97,13 @@ public class EsupNfcCasConfiguration implements CasWebflowExecutionPlanConfigure
         return new EsupNfcGenerateTokenAction(ticketRegistry.getObject(), esupNfcMultifactorAuthenticationTicketFactory(), esupNfcTokenService());
     }
 
+    @ConditionalOnMissingBean(name = "esupNfcMultifactorAuthenticationTicketExpirationPolicy")
+    @Bean
+    @RefreshScope
+    public ExpirationPolicyBuilder esupNfcMultifactorAuthenticationTicketExpirationPolicy() {
+        return new EsupNfcMultifactorAuthenticationTicketExpirationPolicyBuilder();
+    }
+
     @ConditionalOnMissingBean(name = "esupNfcMultifactorAuthenticationUniqueTicketIdGenerator")
     @Bean
     @RefreshScope
@@ -102,14 +111,9 @@ public class EsupNfcCasConfiguration implements CasWebflowExecutionPlanConfigure
         return new EsupNfcMultifactorAuthenticationUniqueTicketIdGenerator();
     }
     
-    @ConditionalOnMissingBean(name = "esupNfcMultifactorAuthenticationTicketExpirationPolicy")
-    @Bean
-    public ExpirationPolicy esupNfcMultifactorAuthenticationTicketExpirationPolicy() {
-        return new HardTimeoutExpirationPolicy(600000);
-    }
-    
     @ConditionalOnMissingBean(name = "esupNfcMultifactorAuthenticationTicketFactory")
     @Bean
+    @RefreshScope
     public TransientSessionTicketFactory esupNfcMultifactorAuthenticationTicketFactory() {
         return new EsupNfcMultifactorAuthenticationTicketFactory(esupNfcMultifactorAuthenticationTicketExpirationPolicy(),
         		esupNfcMultifactorAuthenticationUniqueTicketIdGenerator());

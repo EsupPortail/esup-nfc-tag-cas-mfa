@@ -20,13 +20,8 @@ package org.esupportail.cas.nfctag;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class EsupNfcTokenService {
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+
 	// we keep only last 500 entries ... good timeout is already managet on tickets services
 	final int maxSize = 500;
     final LinkedHashMap<String, String> tokens = new LinkedHashMap<String, String>() {
@@ -41,8 +36,6 @@ public class EsupNfcTokenService {
 	}
 	
 	public String getToken(String uid) {
-		log.trace("tokens : {}", tokens);
-		log.trace("token for {} -> {}", uid, tokens.get(uid));
 		return tokens.get(uid);
 	}
 

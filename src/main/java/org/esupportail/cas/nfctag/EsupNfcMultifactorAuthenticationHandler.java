@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.esupportail.cas.nfctag;
 
-import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.Map;
 
@@ -67,7 +66,7 @@ public class EsupNfcMultifactorAuthenticationHandler extends AbstractPreAndPostP
             LOGGER.warn("Authorization of token [{}] has failed. Token is not found in registry", tokenCredential.getId());
             throw new FailedLoginException("Failed to authenticate code " + tokenCredential.getId());
         }
-        Map<String,Serializable>  properties = acct.getProperties();
+        Map<String,Object>  properties = acct.getProperties();
         if (!properties.containsKey("principal")) {
             LOGGER.warn("Unable to locate principal for token [{}]", tokenCredential.getId());
             deleteToken(acct);

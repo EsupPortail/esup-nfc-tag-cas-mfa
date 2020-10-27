@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -49,10 +48,10 @@ public class EsupNfcLongPollController {
     // Map avec en clef l'uid de l'utilisateur manager potentiel badgeur -> pas plus d'un searchPoll par utilisateur.                                                                        
     private Map<String, DeferredResult<String>> suspendedMfaPollRequests = new ConcurrentHashMap<String, DeferredResult<String>>();
 
+    @RequestMapping
     @ResponseBody
-    @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     public DeferredResult<String> swipePoll(@RequestParam String uid) {
-
+       
     	if(!esupNfcCasConfiguration.getAutologin()) {
     		throw new UnauthorizedAuthenticationException("swipePoll is called but esupnfc.autologin property is not true");
     	}
@@ -63,7 +62,7 @@ public class EsupNfcLongPollController {
             this.suspendedMfaPollRequests.get(uid).setResult("stop");
         }
         this.suspendedMfaPollRequests.put(uid, mfaUid);
-        
+
         mfaUid.onCompletion(new Runnable() {
             public void run() {
                 synchronized (mfaUid) {
@@ -73,17 +72,17 @@ public class EsupNfcLongPollController {
                 }
             }
         });
-                                                                                  
+
+        // log.info("this.suspendedSearchPollRequests.size : " + this.suspendedSearchPollRequests.size());                                                                                    
         return mfaUid;
     }
 
     public void handleCard(EsupNfcTagLog esupNfcTagLog) throws ParseException {
     	String eppn = esupNfcTagLog.getEppn();
 		String uid = eppn.replaceAll("@.*", "");
-        log.debug("handleCard for {}", uid);
+        log.debug("handleCard : " + " for " + uid);
         if(this.suspendedMfaPollRequests.containsKey(uid)) {
         	String tokenId = esupNfcTokenService.getToken(uid);
-        	log.debug("tokenId for {} is {}", uid, esupNfcTokenService.getToken(uid));
             this.suspendedMfaPollRequests.get(uid).setResult(tokenId);
         }
     }

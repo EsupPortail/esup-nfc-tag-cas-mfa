@@ -1,6 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.esupportail.cas.nfctag.EsupNfcCasConfiguration,\
  org.esupportail.cas.nfctag.EsupNfcMultifactorAuthenticationEventExecutionPlanConfiguration,\
+ org.esupportail.cas.nfctag.EsupNfcMultifactorAuthenticationMultifactorProviderBypassConfiguration,\
  org.esupportail.cas.nfctag.EsupNfcWsRestController,\
  org.esupportail.cas.nfctag.EsupNfcLongPollController,\
- org.esupportail.cas.nfctag.EsupNfcCasConfigurationProperties,\
- org.esupportail.cas.nfctag.EsupNfcMultifactorAuthenticationComponentSerializationConfiguration
+ org.esupportail.cas.nfctag.EsupNfcCasConfigurationProperties

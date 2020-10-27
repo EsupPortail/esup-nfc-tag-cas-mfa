@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apereo.cas.authentication.principal.Service;
 import org.apereo.cas.ticket.ExpirationPolicy;
+import org.apereo.cas.ticket.ExpirationPolicyBuilder;
 import org.apereo.cas.ticket.Ticket;
 import org.apereo.cas.ticket.TicketFactory;
 import org.apereo.cas.ticket.TransientSessionTicket;
@@ -37,15 +38,15 @@ public class EsupNfcMultifactorAuthenticationTicketFactory implements TransientS
      */
     public static final String PREFIX = "";
 
-    private final ExpirationPolicy expirationPolicy;
+    private final ExpirationPolicyBuilder expirationPolicyBuilder;
 
     private final UniqueTicketIdGenerator ticketIdGenerator;
 
     
-    public EsupNfcMultifactorAuthenticationTicketFactory(ExpirationPolicy expirationPolicy,
+    public EsupNfcMultifactorAuthenticationTicketFactory(ExpirationPolicyBuilder expirationPolicyBuilder,
 			UniqueTicketIdGenerator ticketIdGenerator) {
 		super();
-		this.expirationPolicy = expirationPolicy;
+		this.expirationPolicyBuilder = expirationPolicyBuilder;
 		this.ticketIdGenerator = ticketIdGenerator;
 	}
 
@@ -59,7 +60,15 @@ public class EsupNfcMultifactorAuthenticationTicketFactory implements TransientS
     @Override
     public TransientSessionTicket create(final Service service, final Map<String, Serializable> properties) {
         String id = ticketIdGenerator.getNewTicketId(PREFIX);
+        ExpirationPolicy expirationPolicy = TransientSessionTicketFactory.buildExpirationPolicy(this.expirationPolicyBuilder, properties);
         return new TransientSessionTicketImpl(id, expirationPolicy, service, properties);
+    }
+
+    @Override
+    public TransientSessionTicket create(final String id, final Map<String, Serializable> properties) {
+    	ExpirationPolicy expirationPolicy = TransientSessionTicketFactory.buildExpirationPolicy(expirationPolicyBuilder, properties);
+        return new TransientSessionTicketImpl(TransientSessionTicketFactory.normalizeTicketId(id),
+            expirationPolicy, null, properties);
     }
 
     @Override
