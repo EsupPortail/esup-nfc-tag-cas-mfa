@@ -1,0 +1,21 @@
+apply plugin: 'java-library'
+apply plugin: 'maven'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+ 		mavenLocal()
+        jcenter()
+        maven { url "https://maven.eveoh.nl/content/repositories/releases" }
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://repo.spring.io/plugins-release" }
+        maven { url "https://repo.spring.io/libs-milestone" }
+}
+
+dependencies {
+	compile 'org.projectlombok:lombok:1.18.14'
+    compile 'org.json:json:20160810'
+    compile "org.apereo.cas:cas-server-core-authentication:${project.'cas.version'}"
+    compile "org.apereo.cas:cas-server-core-webflow:${project.'cas.version'}"
+    compile "org.apereo.cas:cas-server-core-webflow-mfa:${project.'cas.version'}"
+}
+
